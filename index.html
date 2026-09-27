@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مُستكشف الرياضيات - سلطنة عمان</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #4338ca;
+            --primary-light: #6366f1;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg-grad: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background: var(--bg-grad);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            color: #1e293b;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 0 0 4px rgba(255,255,255,0.8);
+            padding: 25px;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--primary);
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: #64748b;
+            margin-top: 5px;
+            font-weight: 700;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .selector-group {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 16px;
+            gap: 4px;
+        }
+
+        .btn-tab {
+            border: none;
+            background: transparent;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #64748b;
+        }
+
+        .btn-tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            padding: 10px 20px;
+            border-radius: 18px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-value {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .problem-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 2px solid #e2e8f0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .problem-title {
+            font-size: 1.2rem;
+            color: #334155;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .equation-box {
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            border-radius: 16px;
+            padding: 20px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #166534;
+            margin-bottom: 15px;
+            direction: ltr;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            line-height: 1.8;
+        }
+
+        .blank-box {
+            display: inline-block;
+            min-width: 50px;
+            height: 45px;
+            line-height: 40px;
+            border: 3px dashed var(--accent);
+            background: #fffbeb;
+            border-radius: 12px;
+            color: #d97706;
+            text-align: center;
+            padding: 0 10px;
+            animation: pulse 1.5s infinite;
+        }
+
+        .blank-box.filled {
+            border-style: solid;
+            border-color: var(--success);
+            background: #dcfce7;
+            color: #15803d;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .hint-text {
+            font-size: 0.95rem;
+            color: #0284c7;
+            background: #e0f2fe;
+            padding: 8px 15px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .btn-option {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 #cbd5e1;
+            direction: ltr;
+        }
+
+        .btn-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #cbd5e1;
+            border-color: var(--primary-light);
+        }
+
+        .btn-option:active {
+            transform: translateY(2px);
+            box-shadow: 0 0 0 #cbd5e1;
+        }
+
+        .btn-option.correct {
+            background: var(--success) !important;
+            color: white !important;
+            border-color: var(--success) !important;
+            box-shadow: 0 4px 0 #047857 !important;
+        }
+
+        .btn-option.wrong {
+            background: var(--danger) !important;
+            color: white !important;
+            border-color: var(--danger) !important;
+            box-shadow: 0 4px 0 #b91c1c !important;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .nav-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .btn-action {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #312e81;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            background: var(--primary-light);
+        }
+
+        .progress-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #cbd5e1;
+        }
+
+        .dot.active {
+            background: var(--primary);
+            transform: scale(1.2);
+        }
+
+        .dot.completed {
+            background: var(--success);
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            .title {
+                font-size: 1.5rem;
+            }
+            .equation-box {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div class="header">
+        <div class="title">🇴🇲 مُستكشف الرياضيات الذكي</div>
+        <div class="subtitle">منهج سلطنة عمان (الصف السادس والتاسع)</div>
+    </div>
+
+    <div class="controls">
+        <div class="selector-group">
+            <button class="btn-tab active" onclick="setGrade(6)">الصف السادس</button>
+            <button class="btn-tab" onclick="setGrade(9)">الصف التاسع</button>
+        </div>
+        <div class="selector-group">
+            <button class="btn-tab active" onclick="setTopic('prime')">الأعداد الأولية</button>
+            <button class="btn-tab" onclick="setTopic('percent')">النسب المئوية</button>
+            <button class="btn-tab" onclick="setTopic('scientific')">الصيغة العلمية</button>
+        </div>
+    </div>
+
+    <div class="stats-bar">
+        <div class="stat-item">⭐ النقاط: <span id="score" class="stat-value">0</span></div>
+        <div class="progress-dots" id="dotsContainer"></div>
+        <div class="stat-item">🔥 التتابع: <span id="streak" class="stat-value">0</span></div>
+    </div>
+
+    <div class="problem-card">
+        <div class="problem-title" id="problemTitle">جاري تحميل المسألة...</div>
+        <div class="hint-text" id="hintText">اختر الرقم المناسب لإكمال الخطوة</div>
+        <div class="equation-box" id="equationBox"></div>
+        <div class="options-grid" id="optionsGrid"></div>
+    </div>
+
+    <div class="nav-footer">
+        <button class="btn-action" onclick="resetCurrentTopic()">إعادة الدرس 🔄</button>
+        <button class="btn-action" onclick="nextQuestion()">المسألة التالية ➔</button>
+    </div>
+</div>
+
+<script>
+const dataset = {
+    6: {
+        prime: [
+            {
+                title: "تحليل العدد 12 إلى عوامله الأولية عبر شجرة العوامل",
+                steps: [
+                    { eq: "12 = 4 × [ ؟ ]", answer: "3", options: ["2", "3", "4", "5"], hint: "ما العدد الذي إذا ضربته في 4 ينتج 12؟" },
+                    { eq: "12 = (2 × [ ؟ ]) × 3", answer: "2", options: ["2", "3", "4", "6"], hint: "فكّك العدد 4 إلى حاصل ضرب عددين أولين" },
+                    { eq: "العوامل الأولية للعدد 12 هي: 2 × 2 × 3 = [ ؟ ]", answer: "12", options: ["10", "12", "14", "16"], hint: "تأكد من الناتج النهائي للضرب" }
+                ]
+            },
+            {
+                title: "تحديد أي الأعداد التالية عدد أولي",
+                steps: [
+                    { eq: "العدد 9 عوامله هي 1، 3، 9 إذن هو عدد [ ؟ ]", answer: "غير أولي", options: ["أولي", "غير أولي", "زوجي أولي", "لا شيء"], hint: "له أكثر من عاملين" },
+                    { eq: "العدد 13 عوامله فقط 1 و [ ؟ ]", answer: "13", options: ["3", "7", "13", "26"], hint: "العدد الأولي يقبل القسمه على نفسه وعلى 1" },
+                    { eq: "إذن العدد الأولي من بين (9، 13) هو: [ ؟ ]", answer: "13", options: ["9", "13", "كلاهما", "لا أحد"], hint: "اختر العدد الأولي الصحيح" }
+                ]
+            },
+            {
+                title: "تحليل العدد 18 إلى عوامله الأولية",
+                steps: [
+                    { eq: "18 = 2 × [ ؟ ]", answer: "9", options: ["6", "8", "9", "12"], hint: "نصف العدد 18" },
+                    { eq: "18 = 2 × ([ ؟ ] × 3)", answer: "3", options: ["2", "3", "4", "6"], hint: "فكّك العدد 9 إلى حاصل ضرب عددين أولين" },
+                    { eq: "الصيغة النهائية لضرب العوامل هي: 2 × [ ؟ ] × 3", answer: "3", options: ["2", "3", "5", "9"], hint: "أكمل الرقم الناقص من العوامل" }
+                ]
+            },
+            {
+                title: "إيجاد العوامل الأولية للعدد 20",
+                steps: [
+                    { eq: "20 = 5 × [ ؟ ]", answer: "4", options: ["2", "4", "5", "10"], hint: "كم نضرب في 5 لنحصل على 20؟" },
+                    { eq: "20 = 5 × ([ ؟ ] × 2)", answer: "2", options: ["2", "3", "4", "5"], hint: "حسب العدد 4 لعوامله الأولية" },
+                    { eq: "العدد 20 = 2 × 2 × [ ؟ ]", answer: "5", options: ["3", "4", "5", "10"], hint: "العامل الأولي الأخير" }
+                ]
+            },
+            {
+                title: "تطبيق الأعداد الأولية أصغر من 10",
+                steps: [
+                    { eq: "الأعداد الأولية الأصغر من 10 هي: 2، 3، 5، [ ؟ ]", answer: "7", options: ["6", "7", "8", "9"], hint: "ما هو العدد الأولي الفردي قبل 10؟" },
+                    { eq: "مجموع أحدث عددين أولين (5 + 7) = [ ؟ ]", answer: "12", options: ["10", "11", "12", "13"], hint: "اجمع 5 مع 7" },
+                    { eq: "ناتج قسمة 12 ÷ 3 = [ ؟ ]", answer: "4", options: ["3", "4", "6", "8"], hint: "قسمة بسيطة" }
+                ]
+            }
+        ],
+        percent: [
+            {
+                title: "حساب 20% من مبلغ 50 ريال عُماني",
+                steps: [
+                    { eq: "كتابة النسبة المئوية على صورة كسر: 20% = [ ؟ ] / 100", answer: "20", options: ["10", "20", "50", "100"], hint: "النسبة تعني من 100" },
+                    { eq: "التبسيط: 20 / 100 = 1 / [ ؟ ]", answer: "5", options: ["2", "4", "5", "10"], hint: "اقسم البسط والمقام على 20" },
+                    { eq: "الحساب: 50 ÷ 5 = [ ؟ ] ريال", answer: "10", options: ["5", "10", "15", "20"], hint: "اقسم المبلغ على 5" }
+                ]
+            },
+            {
+                title: "تحويل الكسر الاعتيادي 3/4 إلى نسبة مئوية",
+                steps: [
+                    { eq: "لتحويل الكسر إلى نسبة مئوية نضرب في: [ ؟ ]", answer: "100", options: ["10", "50", "100", "1000"], hint: "نضرب في 100%" },
+                    { eq: "(3 × 100) ÷ 4 = [ ؟ ] ÷ 4", answer: "300", options: ["150", "200", "300", "400"], hint: "اقتصر اضرب البسط أولاً" },
+                    { eq: "300 ÷ 4 = [ ؟ ] %", answer: "75", options: ["25", "50", "75", "80"], hint: "ثلاثة أرباع الـ 100" }
+                ]
+            },
+            {
+                title: "حساب قيمة خصم 25% على قميص سعره 40 ريال",
+                steps: [
+                    { eq: "النسبة 25% تُكافئ الكسر الاعتيادي: 1 / [ ؟ ]", answer: "4", options: ["2", "3", "4", "5"], hint: "الربع يساوي 25%" },
+                    { eq: "مقدار الخصم = 40 ÷ 4 = [ ؟ ] ريال", answer: "10", options: ["5", "10", "15", "20"], hint: "اقسم السعر الأصلي على 4" },
+                    { eq: "السعر الجديد بعد الخصم = 40 - 10 = [ ؟ ] ريال", answer: "30", options: ["20", "25", "30", "35"], hint: "اطرح الخصم من السعر الأصلي" }
+                ]
+            },
+            {
+                title: "حساب 50% من العدد 80",
+                steps: [
+                    { eq: "50% تعني النصف، أي نقسم على: [ ؟ ]", answer: "2", options: ["2", "4", "5", "10"], hint: "النصف يعادل القسمة على كم؟" },
+                    { eq: "80 ÷ 2 = [ ؟ ]", answer: "40", options: ["20", "30", "40", "50"], hint: "نصف الـ 80" },
+                    { eq: "إذا أضفنا 10 للناتج نحصل على: [ ؟ ]", answer: "50", options: ["45", "50", "55", "60"], hint: "40 + 10" }
+                ]
+            },
+            {
+                title: "حساب 10% من سعر كتاب قيمته 200 ريال",
+                steps: [
+                    { eq: "10% تعني القسمة على: [ ؟ ]", answer: "10", options: ["2", "5", "10", "100"], hint: "10 من 100" },
+                    { eq: "مقدار الـ 10% = 200 ÷ 10 = [ ؟ ] ريال", answer: "20", options: ["10", "20", "30", "40"], hint: "احذف صفراً من الـ 200" },
+                    { eq: "200 - 20 = [ ؟ ] ريال", answer: "180", options: ["160", "170", "180", "190"], hint: "السعر بعد التخفيض" }
+                ]
+            }
+        ],
+        scientific: [
+            {
+                title: "الضرب في قوى العدد 10 (إزاحة الفاصلة)",
+                steps: [
+                    { eq: "4.5 × 10 = [ ؟ ]", answer: "45", options: ["0.45", "45", "450", "4500"], hint: "حرك الفاصلة خانة واحدة لليمين" },
+                    { eq: "4.5 × 100 = [ ؟ ]", answer: "450", options: ["45", "450", "4500", "45000"], hint: "حرك الفاصلة خانتين لليمين" },
+                    { eq: "4.5 × 10³ = [ ؟ ]", answer: "4500", options: ["450", "4500", "45000", "45"], hint: "10³ تعني الضرب في 1000" }
+                ]
+            },
+            {
+                title: "كتابة العدد 5000 باستخدام قوى 10",
+                steps: [
+                    { eq: "5000 = 5 × [ ؟ ]", answer: "1000", options: ["10", "100", "1000", "10000"], hint: "العدد يتكون من 5 وأمامه ثلاثة أصفار" },
+                    { eq: "1000 بالصيغة الأسية هي 10 أُس: [ ؟ ]", answer: "3", options: ["2", "3", "4", "5"], hint: "عدد الأصفار هو الأس" },
+                    { eq: "إذن 5000 = 5 × 10^[ ؟ ]", answer: "3", options: ["2", "3", "4", "5"], hint: "أكمل الصيغة" }
+                ]
+            },
+            {
+                title: "قسمة عدد عشري على قوى 10",
+                steps: [
+                    { eq: "35.6 ÷ 10 = [ ؟ ]", answer: "3.56", options: ["0.356", "3.56", "35.6", "356"], hint: "حرك الفاصلة خانة واحدة لليسار" },
+                    { eq: "35.6 ÷ 100 = [ ؟ ]", answer: "0.356", options: ["0.356", "3.56", "35.6", "0.0356"], hint: "حرك الفاصلة خانتين لليسار" },
+                    { eq: "3.56 × 10 = [ ؟ ]", answer: "35.6", options: ["3.56", "35.6", "356", "0.356"], hint: "الضرب يعكس القسمة" }
+                ]
+            },
+            {
+                title: "التعرف على قوى العدد 10",
+                steps: [
+                    { eq: "10² = [ ؟ ]", answer: "100", options: ["10", "100", "1000", "20"], hint: "10 × 10" },
+                    { eq: "10⁴ = [ ؟ ]", answer: "10000", options: ["1000", "10000", "100000", "40"], hint: "واحد وأمامه 4 أصفار" },
+                    { eq: "100 × 100 = 10^[ ؟ ]", answer: "4", options: ["2", "3", "4", "5"], hint: "اجمع الأُسس" }
+                ]
+            },
+            {
+                title: "تحليل العدد 2300 إلى صيغة ممتدة",
+                steps: [
+                    { eq: "2300 = 2.3 × [ ؟ ]", answer: "1000", options: ["10", "100", "1000", "10000"], hint: "حركنا الفاصلة 3 منازل لليسار" },
+                    { eq: "1000 تُكتب على صورة 10^[ ؟ ]", answer: "3", options: ["2", "3", "4", "5"], hint: "3 أصفار" },
+                    { eq: "الصورة العلمية البسيطة = 2.3 × 10^[ ؟ ]", answer: "3", options: ["2", "3", "4", "5"], hint: "الصيغة النهائية" }
+                ]
+            }
+        ]
+    },
+    9: {
+        prime: [
+            {
+                title: "التحليل إلى العوامل الأولية باستخدام الأسس للعدد 72",
+                steps: [
+                    { eq: "72 = 8 × [ ؟ ]", answer: "9", options: ["6", "8", "9", "12"], hint: "جدول الضرب للعدد 8" },
+                    { eq: "تحليل 8 = 2³ وتحليل 9 = 3^[ ؟ ]", answer: "2", options: ["2", "3", "4", "5"], hint: "9 هي 3 × 3" },
+                    { eq: "التحليل الكامل لـ 72 بالأسس = 2³ × 3^[ ؟ ]", answer: "2", options: ["1", "2", "3", "4"], hint: "ضع الأس الصحيح" }
+                ]
+            },
+            {
+                title: "حساب العامل المشترك الأكبر (ع.م.أ) للعددين 24 و 36",
+                steps: [
+                    { eq: "24 = 2³ × 3 ، و 36 = 2² × 3^[ ؟ ]", answer: "2", options: ["1", "2", "3", "4"], hint: "تحليل العدد 36" },
+                    { eq: "ع.م.أ يأخذ العوامل المشتركة بأصغر أُس: 2² × [ ؟ ]", answer: "3", options: ["3", "3²", "2", "9"], hint: "أصغر أس للعدد 3" },
+                    { eq: "ع.م.أ = 4 × 3 = [ ؟ ]", answer: "12", options: ["6", "12", "18", "24"], hint: "احسب الناتج النهائي" }
+                ]
+            },
+            {
+                title: "حساب المضاعف المشترك الأصغر (م.م.أ) للعددين 8 و 12",
+                steps: [
+                    { eq: "8 = 2³ ، و 12 = 2² × [ ؟ ]", answer: "3", options: ["2", "3", "4", "5"], hint: "تحليل 12" },
+                    { eq: "م.م.أ يأخذ العوامل بأكبر أُس: 2³ × [ ؟ ]", answer: "3", options: ["3", "6", "9", "12"], hint: "العامل الآخر" },
+                    { eq: "م.م.أ = 8 × 3 = [ ؟ ]", answer: "24", options: ["16", "24", "32", "48"], hint: "احسب الناتج" }
+                ]
+            },
+            {
+                title: "تحليل العدد 120 إلى عوامله الأولية بالأسس",
+                steps: [
+                    { eq: "120 = 10 × [ ؟ ]", answer: "12", options: ["10", "12", "15", "20"], hint: "اقسم 120 على 10" },
+                    { eq: "10 = 2 × 5 ، و 12 = 2² × [ ؟ ]", answer: "3", options: ["2", "3", "4", "6"], hint: "تحليل 12" },
+                    { eq: "120 = 2³ × [ ؟ ] × 5", answer: "3", options: ["2", "3", "4", "6"], hint: "تجميع العوامل الأولية" }
+                ]
+            },
+            {
+                title: "تحديد الجذر التربيعي من التحليل الأولي للعدد 144",
+                steps: [
+                    { eq: "144 = 2⁴ × 3^[ ؟ ]", answer: "2", options: ["1", "2", "3", "4"], hint: "16 × 9 = 144" },
+                    { eq: "الجذر التربيعي نقسم الأسس على 2: 2² × 3^[ ؟ ]", answer: "1", options: ["1", "2", "3", "4"], hint: "2 ÷ 2" },
+                    { eq: "√144 = 4 × 3 = [ ؟ ]", answer: "12", options: ["10", "12", "14", "16"], hint: "الجذر النهائي" }
+                ]
+            }
+        ],
+        percent: [
+            {
+                title: "حساب الزيادة المئوية (زيادة راتب 200 ريال بنسبة 15%)",
+                steps: [
+                    { eq: "مقدار الزيادة = (15 / 100) × 200 = 15 × [ ؟ ]", answer: "2", options: ["2", "4", "10", "20"], hint: "اختصر 200 مع 100" },
+                    { eq: "مقدار الزيادة = 15 × 2 = [ ؟ ] ريال", answer: "30", options: ["15", "25", "30", "45"], hint: "احسب الضرب" },
+                    { eq: "المبلغ الجديد = 200 + 30 = [ ؟ ] ريال", answer: "230", options: ["215", "230", "240", "250"], hint: "اجمع الزيادة للأصل" }
+                ]
+            },
+            {
+                title: "حساب التخفيض المئوي لشاشة سعرها الأصلي 150 ريال بنسبة 30%",
+                steps: [
+                    { eq: "مقدار الخصم = 0.30 × 150 = [ ؟ ] ريال", answer: "45", options: ["30", "40", "45", "50"], hint: "3 × 15" },
+                    { eq: "السعر بعد الخصم = 150 - [ ؟ ]", answer: "45", options: ["30", "40", "45", "50"], hint: "اطرح الخصم" },
+                    { eq: "السعر النهائي = [ ؟ ] ريال", answer: "105", options: ["100", "105", "110", "120"], hint: "150 - 45" }
+                ]
+            },
+            {
+                title: "إيجاد نسبة التغير المئوي (ارتفع سعر سلعة من 80 إلى 100 ريال)",
+                steps: [
+                    { eq: "مقدار الزيادة = 100 - 80 = [ ؟ ] ريال", answer: "20", options: ["10", "20", "30", "80"], hint: "اطرح السعرين" },
+                    { eq: "نسبة التغير = (20 ÷ [ ؟ ]) × 100%", answer: "80", options: ["20", "80", "100", "120"], hint: "نقسم دائماً على السعر الأصلي" },
+                    { eq: "(1/4) × 100% = [ ؟ ] %", answer: "25", options: ["20", "25", "30", "50"], hint: "ربع الـ 100" }
+                ]
+            },
+            {
+                title: "حساب الربح المركب/البسيط لسنة واحدة بنسبة 5% لمبلغ 1000 ريال",
+                steps: [
+                    { eq: "الفائدة = 1000 × (5 / [ ؟ ])", answer: "100", options: ["10", "50", "100", "1000"], hint: "النسبة من 100" },
+                    { eq: "الفائدة = 10 × 5 = [ ؟ ] ريال", answer: "50", options: ["25", "50", "100", "500"], hint: "ناتج الضرب" },
+                    { eq: "المبلغ الإجمالي = 1000 + 50 = [ ؟ ] ريال", answer: "1050", options: ["1050", "1100", "1500", "2000"], hint: "اجمع الأصل والفائدة" }
+                ]
+            },
+            {
+                title: "إيجاد السعر الأصلي قبل الخصم (إذا كان السعر بعد خصم 50% هو 40 ريال)",
+                steps: [
+                    { eq: "النسبة المتبقية من السعر = 100% - 50% = [ ؟ ] %", answer: "50", options: ["20", "40", "50", "60"], hint: "100 ناقص 50" },
+                    { eq: "السعر الأصلي × 0.5 = [ ؟ ]", answer: "40", options: ["20", "40", "80", "100"], hint: "السعر المتبقي" },
+                    { eq: "السعر الأصلي = 40 × 2 = [ ؟ ] ريال", answer: "80", options: ["60", "70", "80", "100"], hint: "ضعف السعر الحالي" }
+                ]
+            }
+        ],
+        scientific: [
+            {
+                title: "كتابة الأعداد الكبيرة بالصيغة العلمية (a × 10ⁿ)",
+                steps: [
+                    { eq: "كتابة العدد 45,000,000 بالصيغة العلمية: a = [ ؟ ]", answer: "4.5", options: ["45", "4.5", "0.45", "450"], hint: "يجب أن يكون العدد بين 1 و 10" },
+                    { eq: "عدد المنازل التي تحركتها الفاصلة لليسار هو: [ ؟ ]", answer: "7", options: ["5", "6", "7", "8"], hint: "عد الأرقام بعد الـ 4" },
+                    { eq: "45,000,000 = 4.5 × 10^[ ؟ ]", answer: "7", options: ["6", "7", "8", "9"], hint: "الأُس هو عدد المنازل" }
+                ]
+            },
+            {
+                title: "كتابة الأعداد الصغيرة جداً بالصيغة العلمية",
+                steps: [
+                    { eq: "كتابة 0.00032 بالصيغة العلمية: a = [ ؟ ]", answer: "3.2", options: ["32", "3.2", "0.32", "320"], hint: "ضع الفاصلة بعد أول رقم غير صفري" },
+                    { eq: "تحركت الفاصلة لليمين 4 منازل إذن الأُس سيكون: [ ؟ ]", answer: "-4", options: ["4", "-4", "-3", "-5"], hint: "التحرك لليمين يعطي أُساً سالباً" },
+                    { eq: "0.00032 = 3.2 × 10^[ ؟ ]", answer: "-4", options: ["4", "-4", "3", "-3"], hint: "الصيغة النهائية" }
+                ]
+            },
+            {
+                title: "ضرب أعداد بالصيغة العلمية: (2 × 10³) × (3 × 10⁴)",
+                steps: [
+                    { eq: "نضرب الأعداد أولاً: 2 × 3 = [ ؟ ]", answer: "6", options: ["5", "6", "8", "9"], hint: "ضرب بسيط" },
+                    { eq: "نجمع الأُسس للعدد 10: 3 + 4 = [ ؟ ]", answer: "7", options: ["1", "7", "12", "14"], hint: "عند الضرب نجمع الأسس" },
+                    { eq: "الناتج النهائي بالصيغة العلمية = 6 × 10^[ ؟ ]", answer: "7", options: ["5", "6", "7", "8"], hint: "أكمل الأُس النهائي" }
+                ]
+            },
+            {
+                title: "تحويل من الصيغة العلمية إلى الصيغة القياسية: 7.1 × 10⁻³",
+                steps: [
+                    { eq: "الأُس سالب (-3) إذن نحرك الفاصلة لجهة: [ ؟ ]", answer: "اليسار", options: ["اليمين", "اليسار", "الأعلى", "لا نتحرك"], hint: "الأس السالب يقلل القيمة" },
+                    { eq: "نحرك الفاصلة 3 منازل لليسار نحصل على: [ ؟ ]", answer: "0.0071", options: ["0.071", "0.0071", "0.00071", "7100"], hint: "أضف أصفاراً على اليسار" },
+                    { eq: "7.1 × 10⁻³ = [ ؟ ]", answer: "0.0071", options: ["0.071", "0.0071", "7100", "710"], hint: "العدد النهائي القياسي" }
+                ]
+            },
+            {
+                title: "مقارنة عددين بالصيغة العلمية: (5 × 10⁴) و (2 × 10⁵)",
+                steps: [
+                    { eq: "5 × 10⁴ تساوي بالصيغة القياسية: [ ؟ ]", answer: "50000", options: ["5000", "50000", "500000", "500"], hint: "5 وأمامها 4 أصفار" },
+                    { eq: "2 × 10⁵ تساوي بالصيغة القياسية: [ ؟ ]", answer: "200000", options: ["20000", "200000", "2000000", "2000"], hint: "2 وأمامها 5 أصفار" },
+                    { eq: "العدد الأكبر هو: [ ؟ ]", answer: "2 × 10⁵", options: ["5 × 10⁴", "2 × 10⁵", "متساويان", "لا يمكن التحديد"], hint: "قارن بين 50000 و 200000" }
+                ]
+            }
+        ]
+    }
+};
+
+let currentGrade = 6;
+let currentTopic = 'prime';
+let currentQuestionIndex = 0;
+let currentStepIndex = 0;
+let score = 0;
+let streak = 0;
+
+function initGame() {
+    renderDots();
+    loadQuestion();
+}
+
+function setGrade(g) {
+    currentGrade = g;
+    currentQuestionIndex = 0;
+    currentStepIndex = 0;
+    document.querySelectorAll('.selector-group')[0].querySelectorAll('.btn-tab').forEach((btn, idx) => {
+        btn.classList.toggle('active', (g === 6 && idx === 0) || (g === 9 && idx === 1));
+    });
+    renderDots();
+    loadQuestion();
+}
+
+function setTopic(t) {
+    currentTopic = t;
+    currentQuestionIndex = 0;
+    currentStepIndex = 0;
+    const topicMap = { 'prime': 0, 'percent': 1, 'scientific': 2 };
+    document.querySelectorAll('.selector-group')[1].querySelectorAll('.btn-tab').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === topicMap[t]);
+    });
+    renderDots();
+    loadQuestion();
+}
+
+function renderDots() {
+    const dotsContainer = document.getElementById('dotsContainer');
+    dotsContainer.innerHTML = '';
+    const total = dataset[currentGrade][currentTopic].length;
+    for (let i = 0; i < total; i++) {
+        const dot = document.createElement('div');
+        dot.className = `dot ${i === currentQuestionIndex ? 'active' : ''} ${i < currentQuestionIndex ? 'completed' : ''}`;
+        dotsContainer.appendChild(dot);
+    }
+}
+
+function loadQuestion() {
+    const questions = dataset[currentGrade][currentTopic];
+    if (currentQuestionIndex >= questions.length) {
+        currentQuestionIndex = 0; 
+    }
+
+    const q = questions[currentQuestionIndex];
+    document.getElementById('problemTitle').innerText = `مسألة ${currentQuestionIndex + 1} من ${questions.length}: ${q.title}`;
+    
+    renderEquation();
+    renderOptions();
+    renderDots();
+}
+
+function renderEquation() {
+    const q = dataset[currentGrade][currentTopic][currentQuestionIndex];
+    const eqBox = document.getElementById('equationBox');
+    eqBox.innerHTML = '';
+
+    for (let i = 0; i <= currentStepIndex; i++) {
+        const step = q.steps[i];
+        const stepDiv = document.createElement('div');
+        stepDiv.style.width = '100%';
+        stepDiv.style.margin = '5px 0';
+
+        if (i < currentStepIndex) {
+            stepDiv.innerHTML = step.eq.replace('[ ؟ ]', `<span class="blank-box filled">${step.answer}</span>`);
+        } else {
+            stepDiv.innerHTML = step.eq.replace('[ ؟ ]', `<span class="blank-box">[ ؟ ]</span>`);
+            document.getElementById('hintText').innerText = step.hint;
+        }
+        eqBox.appendChild(stepDiv);
+    }
+}
+
+function renderOptions() {
+    const q = dataset[currentGrade][currentTopic][currentQuestionIndex];
+    const step = q.steps[currentStepIndex];
+    const grid = document.getElementById('optionsGrid');
+    grid.innerHTML = '';
+
+    let options = [...step.options];
+    options.sort(() => Math.random() - 0.5);
+
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-option';
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(opt, step.answer, btn);
+        grid.appendChild(btn);
+    });
+}
+
+function checkAnswer(selected, correct, btn) {
+    if (selected === correct) {
+        btn.classList.add('correct');
+        score += 10;
+        streak += 1;
+        document.getElementById('score').innerText = score;
+        document.getElementById('streak').innerText = streak;
+
+        const q = dataset[currentGrade][currentTopic][currentQuestionIndex];
+        
+        setTimeout(() => {
+            if (currentStepIndex < q.steps.length - 1) {
+                currentStepIndex++;
+                renderEquation();
+                renderOptions();
+            } else {
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
+                currentStepIndex = 0;
+                currentQuestionIndex++;
+                if (currentQuestionIndex >= q.steps.length + 2) {
+                    alert('🎉 ممتااااز! أكملت جميع مسائل هذا الدرس بنجاح!');
+                }
+                loadQuestion();
+            }
+        }, 600);
+
+    } else {
+        btn.classList.add('wrong');
+        streak = 0;
+        document.getElementById('streak').innerText = streak;
+        setTimeout(() => btn.classList.remove('wrong'), 800);
+    }
+}
+
+function nextQuestion() {
+    currentStepIndex = 0;
+    currentQuestionIndex++;
+    loadQuestion();
+}
+
+function resetCurrentTopic() {
+    currentQuestionIndex = 0;
+    currentStepIndex = 0;
+    score = 0;
+    streak = 0;
+    document.getElementById('score').innerText = score;
+    document.getElementById('streak').innerText = streak;
+    loadQuestion();
+}
+
+window.onload = initGame;
+</script>
+</body>
+</html>
